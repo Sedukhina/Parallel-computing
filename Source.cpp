@@ -1,28 +1,23 @@
 #include <omp.h>
 #include <stdio.h>
 #include <random>
-
+#include "IntegralSolver.h"
 #include "MatrixFunctions.h"
+#include "IntegralFunctionsTests.h"
 
 void GenerateFloatVector(unsigned int VectorLength, std::vector<float>& Vec);
 
+float Integrand(float x);
+void SolveIntegralAndMeasureTime(const std::function<float(float)>& Integrand, float a, float b, unsigned int PartsAmount, int NumThreads);
+
 int main(void) 
 {
-#ifdef _OPENMP
-	printf("OpenMP is supported!\n");
-#endif
-
-	double start_time, end_time, tick;
-	start_time = omp_get_wtime();
-	end_time = omp_get_wtime();
-	tick = omp_get_wtick();
-	printf("Time for time measurement %lf\n", end_time - start_time);
-	printf("Timer precision %lf\n", tick);
-
-#pragma omp parallel 
-	{
-		printf("Hello World\n");
-	}
+	IntegralFunctionTest(IntegralSolver::LeftRiemannSum, TestIntegrand_1, 1, 45, 1e4, -988.37f, 0.01f);
+	IntegralFunctionTest(IntegralSolver::LeftRiemannSum, TestIntegrand_2, 0, 400, 1e5, 0.36203f, 0.01f);
+	IntegralFunctionTest(IntegralSolver::LeftRiemannSum, TestIntegrand_3, -30, 10, 1e4, 22026.f, 0.01f);
+	IntegralFunctionTest(IntegralSolver::LeftRiemannSum, Integrand, 1, 9, 1e4, 52, 0.01f);
+	
+	SolveIntegralAndMeasureTime(Integrand, 1, 9, 1000, 10);
 
 	return 0;
 }
@@ -37,3 +32,17 @@ void GenerateFloatVector(unsigned int VectorLength, std::vector<float>& Vec)
 		Vec.push_back((float)Dist(gen));
 	}
 }
+
+inline float Integrand(float x)
+{
+	return 3.f * sqrt(x);
+}
+
+void SolveIntegralAndMeasureTime(const std::function<float(float)>& Integrand, float a, float b, unsigned int PartsAmount, int NumThreads)
+{
+	auto start_time = omp_get_wtime();
+	printf("\nSolving Result %f\n", IntegralSolver::LeftRiemannSum(Integrand, a, b, PartsAmount, NumThreads));
+	auto end_time = omp_get_wtime();
+	printf("Time for solving %lf\n", end_time - start_time);
+}
+

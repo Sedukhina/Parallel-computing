@@ -9,3 +9,4 @@ extern float MatrixElementsSumParallelNoReduction(std::vector<std::vector<float>
 extern float MatrixElementsSum(std::vector<std::vector<float>> Matrix);
 
 extern void PrintFloatVector(std::vector<float> vec);
+
