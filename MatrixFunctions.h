@@ -8,5 +8,6 @@ extern float MatrixElementsSumParallel(std::vector<std::vector<float>> Matrix);
 extern float MatrixElementsSumParallelNoReduction(std::vector<std::vector<float>> Matrix);
 extern float MatrixElementsSum(std::vector<std::vector<float>> Matrix);
 
-extern void PrintFloatVector(std::vector<float> vec);
+extern std::vector<float> GaussianElimination(std::vector<std::vector<float>> Matrix);
 
+extern void PrintFloatVector(std::vector<float> vec);

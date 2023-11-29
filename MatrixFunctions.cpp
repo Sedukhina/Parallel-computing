@@ -105,6 +105,12 @@ float MatrixElementsSum(std::vector<std::vector<float>> Matrix)
 	return Sum;
 }
 
+std::vector<float> GaussianElimination(std::vector<std::vector<float>> Matrix)
+{
+	
+	return std::vector<float>();
+}
+
 float MatrixElementsSumParallelNoReduction(std::vector<std::vector<float>> Matrix)
 {
 	float Sum = 0;
