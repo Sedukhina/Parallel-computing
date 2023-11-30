@@ -11,37 +11,18 @@ void GenerateFloatVector(unsigned int VectorLength, std::vector<float>& Vec);
 
 float Integrand(float x);
 void SolveIntegralAndMeasureTime(const std::function<float(float)>& Integrand, float a, float b, unsigned int PartsAmount, int NumThreads);
+void TestGaussianEliminationSpeed(int RowsAmount, int ColumnsAmount, int NumThreads);
 
 int main(void) 
 {
-	
-	IntegralFunctionTest(IntegralSolver::LeftRiemannSum, TestIntegrand_1, 1, 45, 1e4, -988.37f, 0.01f);
-	IntegralFunctionTest(IntegralSolver::LeftRiemannSum, TestIntegrand_2, 0, 400, 1e5, 0.36203f, 0.01f);
-	IntegralFunctionTest(IntegralSolver::LeftRiemannSum, TestIntegrand_3, -30, 10, 1e4, 22026.f, 0.01f);
-	IntegralFunctionTest(IntegralSolver::LeftRiemannSum, Integrand, 1, 9, 1e4, 52, 0.01f);
-	
-	
-	printf("Enter Parts Amount\n");
-	double PartsAmount;
-	std::cin >> PartsAmount;
-
-	printf("Enter Threads Amount\n");
-	unsigned int ThreadsAmount;
-	std::cin >> ThreadsAmount;
-
-	SolveIntegralAndMeasureTime(Integrand, 1, 9, PartsAmount, ThreadsAmount);
-	
-	/*
-	for (size_t ThreadsAmount = 1; ThreadsAmount < omp_get_max_threads()*2; ThreadsAmount *= 2)
+	for (size_t n = 10; n < 10000; n *= 10)
 	{
-		for (size_t PartsAmount = 10; PartsAmount < 1e8; PartsAmount *= 1e2)
+		for (size_t ThreadsAmount = 1; ThreadsAmount < omp_get_max_threads()+1; ThreadsAmount++)
 		{
-			SolveIntegralAndMeasureTime(Integrand, 1, 9, PartsAmount, ThreadsAmount);
+			TestGaussianEliminationSpeed(n, n, ThreadsAmount);
 			printf("\n");
 		}
 	}
-	*/
-
 	return 0;
 }
 
@@ -67,5 +48,25 @@ void SolveIntegralAndMeasureTime(const std::function<float(float)>& Integrand, f
 	printf("Solving Result %f\n", IntegralSolver::LeftRiemannSum(Integrand, a, b, PartsAmount, NumThreads));
 	auto end_time = omp_get_wtime();
 	printf("Time for solving %lf\n", end_time - start_time);
+}
+
+void TestGaussianEliminationSpeed(int RowsAmount, int ColumnsAmount, int NumThreads)
+{
+	int CachedMaxThreads = omp_get_max_threads();
+	NumThreads = std::clamp(NumThreads, 1, CachedMaxThreads);
+	omp_set_num_threads(NumThreads);
+
+	std::vector<std::vector<float>> Matrix;
+	for (size_t i = 0; i < RowsAmount; i++)
+	{
+		Matrix.push_back({});
+		(GenerateFloatVector(ColumnsAmount, Matrix[i]));
+	}
+	auto start_time = omp_get_wtime();
+	GaussianElimination(Matrix);
+	auto end_time = omp_get_wtime();
+	printf("Matrix size: %i x %i\nNumber of Threads %i\nTime for solving %lf\n", RowsAmount, ColumnsAmount, NumThreads, end_time - start_time);
+
+	omp_set_num_threads(CachedMaxThreads);
 }
 
