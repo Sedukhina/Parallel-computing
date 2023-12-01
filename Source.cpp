@@ -1,11 +1,11 @@
 #include <omp.h>
-#include <stdio.h>
 #include <random>
-#include <Windows.h>
 #include "IntegralSolver.h"
 #include "MatrixFunctions.h"
 #include "IntegralFunctionsTests.h"
-#include <iostream>
+#include "PiApproximation.h"
+
+# define M_PIl          3.141592653589793238462643383279502884L
 
 void GenerateFloatVector(unsigned int VectorLength, std::vector<float>& Vec);
 
@@ -15,12 +15,19 @@ void TestGaussianEliminationSpeed(int RowsAmount, int ColumnsAmount, int NumThre
 
 int main(void) 
 {
-	for (size_t n = 10; n < 10000; n *= 10)
+	for (size_t n = 1e2; n < 1e9; n *= 10)
 	{
-		for (size_t ThreadsAmount = 1; ThreadsAmount < omp_get_max_threads()+1; ThreadsAmount++)
+		for (int NumThreads = 1; NumThreads < omp_get_max_threads() + 1; NumThreads*=4)
 		{
-			TestGaussianEliminationSpeed(n, n, ThreadsAmount);
-			printf("\n");
+			int CachedMaxThreads = omp_get_max_threads();
+			omp_set_num_threads(NumThreads);
+
+			auto start_time = omp_get_wtime();
+			auto Result = PiApproximation(n);
+			auto end_time = omp_get_wtime();
+
+			printf("Number of Samples %li\nNumber of Threads %i\nTime for solving %lf\nResult %lf\nDelta %lf\n\n", n, NumThreads, end_time - start_time, Result, abs(Result - M_PIl));
+			omp_set_num_threads(CachedMaxThreads);
 		}
 	}
 	return 0;
